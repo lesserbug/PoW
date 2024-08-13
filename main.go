@@ -18,16 +18,16 @@ func main() {
 	dc := NewDataCollector()
 
 	powInstances := []*PoW{
-		NewPoW(1, "localhost:8001"),
-		NewPoW(2, "localhost:8002"),
-		NewPoW(3, "localhost:8003"),
-		NewPoW(4, "localhost:8004"),
-		NewPoW(5, "localhost:8005"),
-		// NewPoW(6, "localhost:8006"),
-		// NewPoW(7, "localhost:8007"),
-		// NewPoW(8, "localhost:8008"),
-		// NewPoW(9, "localhost:8009"),
-		// NewPoW(10, "localhost:8010"),
+		// NewPoW(1, "localhost:8001"),
+		// NewPoW(2, "localhost:8002"),
+		// NewPoW(3, "localhost:8003"),
+		// NewPoW(4, "localhost:8004"),
+		// NewPoW(5, "localhost:8005"),
+		NewPoW(1, "0.0.0.0:8001"),
+		NewPoW(2, "0.0.0.0:8002"),
+		NewPoW(3, "0.0.0.0:8003"),
+		NewPoW(4, "0.0.0.0:8004"),
+		NewPoW(5, "0.0.0.0:8005"),
 	}
 
 	for i, p := range powInstances {
@@ -36,6 +36,10 @@ func main() {
 				p.Nodes = append(p.Nodes, p2.node)
 			}
 		}
+	}
+
+	for _, p := range powInstances {
+		p.Nodes = append(p.Nodes, p.node)
 	}
 
 	for _, p := range powInstances {
