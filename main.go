@@ -9,33 +9,50 @@ func main() {
 	dc := NewDataCollector()
 
 	powInstances := []*PoW{
-		NewPoW(1, "localhost:8001", dc),
-		NewPoW(2, "localhost:8002", dc),
-		NewPoW(3, "localhost:8003", dc),
-		NewPoW(4, "localhost:8004", dc),
-		NewPoW(5, "localhost:8005", dc),
-		NewPoW(6, "localhost:8006", dc),
-		NewPoW(7, "localhost:8007", dc),
-		NewPoW(8, "localhost:8008", dc),
-		NewPoW(9, "localhost:8009", dc),
-		NewPoW(10, "localhost:8010", dc),
+		// NewPoW(1, "localhost:8001", dc),
+		// NewPoW(2, "localhost:8002", dc),
+		// NewPoW(3, "localhost:8003", dc),
+		// NewPoW(4, "localhost:8004", dc),
+		// NewPoW(5, "localhost:8005", dc),
+		// NewPoW(6, "localhost:8006", dc),
+		// NewPoW(7, "localhost:8007", dc),
+		// NewPoW(8, "localhost:8008", dc),
+		// NewPoW(9, "localhost:8009", dc),
+		// NewPoW(10, "localhost:8010", dc),
 
-		NewPoW(11, "localhost:8011", dc),
-		NewPoW(12, "localhost:8012", dc),
-		NewPoW(13, "localhost:8013", dc),
-		NewPoW(14, "localhost:8014", dc),
-		NewPoW(15, "localhost:8015", dc),
-		NewPoW(16, "localhost:8016", dc),
-		NewPoW(17, "localhost:8017", dc),
-		NewPoW(18, "localhost:8018", dc),
-		NewPoW(19, "localhost:8019", dc),
-		NewPoW(20, "localhost:8020", dc),
+		NewPoW(11, "0.0.0.0:8011", dc),
+		NewPoW(12, "0.0.0.0:8012", dc),
+		NewPoW(13, "0.0.0.0:8013", dc),
+		NewPoW(14, "0.0.0.0:8014", dc),
+		NewPoW(15, "0.0.0.0:8015", dc),
+		NewPoW(16, "0.0.0.0:8016", dc),
+		NewPoW(17, "0.0.0.0:8017", dc),
+		NewPoW(18, "0.0.0.0:8018", dc),
+		NewPoW(19, "0.0.0.0:8019", dc),
+		NewPoW(20, "0.0.0.0:8020", dc),
+	}
 
-		// NewPoW(21, "localhost:8021", dc),
-		// NewPoW(22, "localhost:8022", dc),
-		// NewPoW(23, "localhost:8023", dc),
-		// NewPoW(24, "localhost:8024", dc),
-		// NewPoW(25, "localhost:8025", dc),
+	// for i, p := range powInstances {
+	// 	for j, p2 := range powInstances {
+	// 		if i != j {
+	// 			p.Nodes = append(p.Nodes, p2.node)
+	// 		}
+	// 	}
+	// }
+
+	ip2 := "3.25.73.210"
+
+	powInstances2 := []*PoW{
+		NewPoW(1, ip2+"8001", dc),
+		NewPoW(2, ip2+"8002", dc),
+		NewPoW(3, ip2+"8003", dc),
+		NewPoW(4, ip2+"8004", dc),
+		NewPoW(5, ip2+"8005", dc),
+		NewPoW(6, ip2+"8006", dc),
+		NewPoW(7, ip2+"8007", dc),
+		NewPoW(8, ip2+"8008", dc),
+		NewPoW(9, ip2+"8009", dc),
+		NewPoW(10, ip2+"8010", dc),
 	}
 
 	for i, p := range powInstances {
@@ -43,6 +60,12 @@ func main() {
 			if i != j {
 				p.Nodes = append(p.Nodes, p2.node)
 			}
+		}
+	}
+
+	for _, p := range powInstances {
+		for _, p2 := range powInstances2 {
+			p.Nodes = append(p.Nodes, p2.node)
 		}
 	}
 
