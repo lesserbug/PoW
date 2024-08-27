@@ -205,7 +205,7 @@ func NewDataCollector() *DataCollector {
 
 // 导出数据到CSV文件
 func exportData(dc *DataCollector) {
-	ticker := time.NewTicker(16 * time.Minute)
+	ticker := time.NewTicker(20 * time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {

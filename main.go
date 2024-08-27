@@ -20,16 +20,16 @@ func main() {
 		// NewPoW(9, "localhost:8009", dc),
 		// NewPoW(10, "localhost:8010", dc),
 
-		NewPoW(11, "0.0.0.0:8011", dc),
-		NewPoW(12, "0.0.0.0:8012", dc),
-		NewPoW(13, "0.0.0.0:8013", dc),
-		NewPoW(14, "0.0.0.0:8014", dc),
-		NewPoW(15, "0.0.0.0:8015", dc),
-		NewPoW(16, "0.0.0.0:8016", dc),
-		NewPoW(17, "0.0.0.0:8017", dc),
-		NewPoW(18, "0.0.0.0:8018", dc),
-		NewPoW(19, "0.0.0.0:8019", dc),
-		NewPoW(20, "0.0.0.0:8020", dc),
+		NewPoW(31, "0.0.0.0:8001", dc),
+		NewPoW(32, "0.0.0.0:8002", dc),
+		NewPoW(33, "0.0.0.0:8003", dc),
+		NewPoW(34, "0.0.0.0:8004", dc),
+		NewPoW(35, "0.0.0.0:8005", dc),
+		NewPoW(36, "0.0.0.0:8006", dc),
+		NewPoW(37, "0.0.0.0:8007", dc),
+		NewPoW(38, "0.0.0.0:8008", dc),
+		NewPoW(39, "0.0.0.0:8009", dc),
+		NewPoW(40, "0.0.0.0:8010", dc),
 	}
 
 	// for i, p := range powInstances {
@@ -40,7 +40,7 @@ func main() {
 	// 	}
 	// }
 
-	ip2 := "13.210.68.33:"
+	ip2 := "13.239.112.188:"
 
 	powInstances2 := []*PoW{
 		NewPoW(1, ip2+"8001", dc),
@@ -55,6 +55,36 @@ func main() {
 		NewPoW(10, ip2+"8010", dc),
 	}
 
+	ip3 := "54.206.34.42:"
+
+        powInstances3 := []*PoW{
+                NewPoW(11, ip3+"8001", dc),
+                NewPoW(12, ip3+"8002", dc),
+                NewPoW(13, ip3+"8003", dc),
+                NewPoW(14, ip3+"8004", dc),
+                NewPoW(15, ip3+"8005", dc),
+                NewPoW(16, ip3+"8006", dc),
+                NewPoW(17, ip3+"8007", dc),
+                NewPoW(18, ip3+"8008", dc),
+                NewPoW(19, ip3+"8009", dc),
+                NewPoW(20, ip3+"8010", dc),
+        }
+
+	ip4 := "54.206.71.200:"
+
+        powInstances4 := []*PoW{
+                NewPoW(21, ip4+"8001", dc),
+                NewPoW(22, ip4+"8002", dc),
+                NewPoW(23, ip4+"8003", dc),
+                NewPoW(24, ip4+"8004", dc),
+                NewPoW(25, ip4+"8005", dc),
+                NewPoW(26, ip4+"8006", dc),
+                NewPoW(27, ip4+"8007", dc),
+                NewPoW(28, ip4+"8008", dc),
+                NewPoW(29, ip4+"8009", dc),
+                NewPoW(30, ip4+"8010", dc),
+        }
+
 	for i, p := range powInstances {
 		for j, p2 := range powInstances {
 			if i != j {
@@ -68,6 +98,18 @@ func main() {
 			p.Nodes = append(p.Nodes, p2.node)
 		}
 	}
+
+	for _, p := range powInstances {
+                for _, p2 := range powInstances3 {
+                        p.Nodes = append(p.Nodes, p2.node)
+                }
+        }
+
+	for _, p := range powInstances {
+                for _, p2 := range powInstances4 {
+                        p.Nodes = append(p.Nodes, p2.node)
+                }
+        }
 
 	for _, p := range powInstances {
 		go p.Listen()
@@ -92,11 +134,11 @@ func (pow *PoW) adjustParticipation() {
 		timeBlock := int(elapsed.Seconds()) / 10 // 每10秒一个时间块
 
 		switch {
-		case elapsed < 300*time.Second:
+		case elapsed < 400*time.Second:
 			// 40-70% 的概率活跃
-			active = rand.Float32() < (0.40 + rand.Float32()*0.30)
+			active = rand.Float32() < (0.40 + rand.Float32()*0.20)
 
-		case elapsed < 600*time.Second: // 约 125 行
+		case elapsed < 800*time.Second: // 约 125 行
 			// 基于时间块的剧烈波动
 			if timeBlock%2 == 0 { // 偶数时间块
 				active = rand.Float32() < 0.9 // 90% 概率活跃
@@ -108,8 +150,8 @@ func (pow *PoW) adjustParticipation() {
 				active = !active
 			}
 
-		case elapsed < 900*time.Second:
-			active = rand.Float32() < (0.8 + rand.Float32()*0.2)
+		case elapsed < 1100*time.Second:
+			active = rand.Float32() < (0.6 + rand.Float32()*0.2)
 
 		default:
 			// 10-30% 的概率活跃
