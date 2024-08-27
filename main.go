@@ -40,7 +40,7 @@ func main() {
 	// 	}
 	// }
 
-	ip2 := "3.25.73.210"
+	ip2 := "13.210.68.33:"
 
 	powInstances2 := []*PoW{
 		NewPoW(1, ip2+"8001", dc),
