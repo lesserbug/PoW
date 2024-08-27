@@ -15,7 +15,7 @@ import (
 const k = 10
 
 func (pow *PoW) MineBlock() {
-	fmt.Println("Node", pow.node.ID, "is mining a new block...")
+	// fmt.Println("Node", pow.node.ID, "is mining a new block...")
 
 	pow.rwmutex.RLock()
 	active := pow.ActiveNodes[pow.node.ID]
@@ -30,6 +30,7 @@ func (pow *PoW) MineBlock() {
 		RandomNum:    rand.Intn(100000),
 		Confirmed:    false,
 		ProposedTime: time.Now(),
+		ProposerID:   pow.node.ID,
 	}
 
 	var nonce int = rand.Intn(100000)
@@ -43,12 +44,11 @@ func (pow *PoW) MineBlock() {
 		}
 		if !active {
 			// fmt.Println("Node", pow.node.ID, "is not active")
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
 		newBlock.RandomNum = nonce
-		// fmt.Println("Node", pow.node.ID, "is trying nonce", nonce)
 		newBlock.Hash = getHash(newBlock)
 		hashBytes, _ := hex.DecodeString(newBlock.Hash)
 		hashInt.SetBytes(hashBytes)
@@ -56,7 +56,7 @@ func (pow *PoW) MineBlock() {
 			fmt.Println("Node", pow.node.ID, "mined a new block")
 			pow.miningActive = false
 			pow.broadcastNewBlock(newBlock)
-			pow.addBlocktoChain(newBlock)
+			pow.addBlocktoChain(newBlock, pow.dc)
 			break
 		}
 		nonce++
@@ -89,8 +89,10 @@ func (pow *PoW) broadcastNewBlock(newBlock Block) {
 	pow.BroadcastMessage(msg)
 }
 
-func (pow *PoW) addBlocktoChain(newBlock Block) {
+func (pow *PoW) addBlocktoChain(newBlock Block, dc *DataCollector) {
+
 	lastBlock := pow.Chain[len(pow.Chain)-1]
+
 	if newBlock.PrevHash == lastBlock.Hash && newBlock.Height == lastBlock.Height+1 {
 		pow.Chain = append(pow.Chain, newBlock)
 		if len(pow.Chain) > k {
@@ -98,6 +100,8 @@ func (pow *PoW) addBlocktoChain(newBlock Block) {
 			pow.Chain[len(pow.Chain)-k].ConfirmedTime = time.Now()
 			latency := pow.Chain[len(pow.Chain)-k].ConfirmedTime.Sub(pow.Chain[len(pow.Chain)-k].ProposedTime)
 			fmt.Println("Block at height", pow.Chain[len(pow.Chain)-k].Height, "is confirmed by node", pow.node.ID, "with latency", latency)
+
+			pow.dc.RecordLatencyData(pow.Chain[len(pow.Chain)-k].Height, pow.Chain[len(pow.Chain)-k].ProposedTime, latency)
 		}
 		fmt.Println("Node", pow.node.ID, "added a new block to the chain with height", newBlock.Height)
 

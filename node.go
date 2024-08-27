@@ -33,13 +33,22 @@ type Block struct {
 
 	ProposedTime  time.Time
 	ConfirmedTime time.Time
+
+	ProposerID int
 }
 
 type DataCollector struct {
-	ActiveCounts []int
-	LogLengths   []int
-	Latencies    []time.Duration
-	rwMutex      sync.RWMutex
+	rwMutex     sync.RWMutex
+	GeneralData []GeneralDataEntry
+}
+
+type GeneralDataEntry struct {
+	Timestamp    string
+	ActiveCount  int
+	LogLength    int
+	BlockHeight  int // 这些只在有延迟数据时填写
+	ProposedTime string
+	Latency      string
 }
 
 type PoW struct {
@@ -51,14 +60,10 @@ type PoW struct {
 	rwmutex      sync.RWMutex
 	miningActive bool // 控制是否正在挖矿
 
-	Data struct {
-		ActiveCount []int
-		LogLength   []int
-		Latencies   []time.Duration
-	}
+	dc *DataCollector
 }
 
-func NewPoW(nodeID int, addr string) *PoW {
+func NewPoW(nodeID int, addr string, dc *DataCollector) *PoW {
 	p := new(PoW)
 	p.miningActive = true
 	p.node.ID = nodeID
@@ -70,9 +75,7 @@ func NewPoW(nodeID int, addr string) *PoW {
 	p.Chain = make([]Block, 0)
 	p.Chain = append(p.Chain, createGenesisBlock())
 
-	p.Data.ActiveCount = make([]int, 0)
-	p.Data.LogLength = make([]int, 0)
-	p.Data.Latencies = make([]time.Duration, 0)
+	p.dc = dc
 
 	return p
 }
@@ -96,8 +99,7 @@ func createGenesisBlock() Block {
 func (p *PoW) Listen() {
 	listener, err := net.Listen("tcp", p.node.Address)
 	if err != nil {
-		fmt.Println("Error starting server:", err)
-		log.Panic(err)
+		log.Fatalf("Error starting server: %v", err)
 	}
 	defer listener.Close()
 
@@ -169,69 +171,64 @@ func getPrivKey(nodeID int) ed25519.PrivateKey {
 	return key
 }
 
-func (dc *DataCollector) RecordData(activeCount, logLength int, latency time.Duration) {
+//	func (dc *DataCollector) RecordData(activeCount, logLength int) {
+//		dc.rwMutex.Lock()
+//		defer dc.rwMutex.Unlock()
+//		dc.ActiveCounts = append(dc.ActiveCounts, activeCount)
+//		dc.LogLengths = append(dc.LogLengths, logLength)
+//	}
+func (dc *DataCollector) RecordGeneralData(activeCount, logLength int) {
 	dc.rwMutex.Lock()
-	defer dc.rwMutex.Unlock()
-	dc.ActiveCounts = append(dc.ActiveCounts, activeCount)
-	dc.LogLengths = append(dc.LogLengths, logLength)
-	dc.Latencies = append(dc.Latencies, latency)
+	dc.GeneralData = append(dc.GeneralData, GeneralDataEntry{
+		Timestamp:   time.Now().Format(time.RFC3339),
+		ActiveCount: activeCount,
+		LogLength:   logLength,
+	})
+	dc.rwMutex.Unlock()
+}
+
+func (dc *DataCollector) RecordLatencyData(height int, proposedTime time.Time, latency time.Duration) {
+	entry := GeneralDataEntry{
+		Timestamp:    time.Now().Format(time.RFC3339),
+		BlockHeight:  height,
+		ProposedTime: proposedTime.Format(time.RFC3339),
+		Latency:      latency.String(),
+	}
+	dc.rwMutex.Lock()
+	dc.GeneralData = append(dc.GeneralData, entry)
+	dc.rwMutex.Unlock()
 }
 
 func NewDataCollector() *DataCollector {
 	return &DataCollector{}
 }
 
-// 修改每个节点的 collectData 方法，以便它们能够记录并上报数据
-func (pow *PoW) collectData(dc *DataCollector) {
-	ticker := time.NewTicker(10 * time.Second)
+// 导出数据到CSV文件
+func exportData(dc *DataCollector) {
+	ticker := time.NewTicker(16 * time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		pow.rwmutex.RLock()
-		isActive := pow.ActiveNodes[pow.node.ID]
-		pow.rwmutex.RUnlock()
-
-		activeCount := 0
-		if isActive {
-			activeCount = 1
+		filename := "combined_data_" + time.Now().Format("20060102-150405") + ".csv"
+		file, err := os.Create(filename)
+		if err != nil {
+			log.Fatalf("Failed to create file: %v", err)
 		}
+		writer := csv.NewWriter(file)
+		// 写入列标题
+		headers := []string{"Timestamp", "ActiveCount", "LogLength", "BlockHeight", "ProposedTime", "Latency"}
+		writer.Write(headers)
 
-		// lastBlock := pow.Chain[len(pow.Chain)-k]
-		// if lastBlock.Confirmed {
-		// 	latency := lastBlock.ConfirmedTime.Sub(lastBlock.ProposedTime)
-		// 	logLength := len(pow.Chain)
-
-		// 	// 这里只记录当前节点的数据，需要一个机制来聚合所有节点的数据
-		// 	dc.RecordData(activeCount, logLength, latency)
-		// }
-		var latency time.Duration
-		if len(pow.Chain) > k {
-			confirmedBlock := pow.Chain[len(pow.Chain)-k]
-			if confirmedBlock.Confirmed {
-				latency = confirmedBlock.ConfirmedTime.Sub(confirmedBlock.ProposedTime)
-			}
+		for _, data := range dc.GeneralData {
+			row := []string{data.Timestamp, strconv.Itoa(data.ActiveCount), strconv.Itoa(data.LogLength), strconv.Itoa(data.BlockHeight), data.ProposedTime, data.Latency}
+			writer.Write(row)
 		}
-		logLength := len(pow.Chain)
-		dc.RecordData(activeCount, logLength, latency)
-	}
-}
+		writer.Flush()
+		file.Close()
 
-// 导出数据到CSV文件
-func (dc *DataCollector) ExportData(filename string) {
-	file, err := os.Create(filename)
-	if err != nil {
-		log.Fatalf("Failed to create file: %v", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	for i, activeCount := range dc.ActiveCounts {
-		writer.Write([]string{
-			strconv.Itoa(activeCount),
-			strconv.Itoa(dc.LogLengths[i]),
-			dc.Latencies[i].String(),
-		})
+		// 清除已导出数据
+		dc.rwMutex.Lock()
+		dc.GeneralData = nil
+		dc.rwMutex.Unlock()
 	}
 }
