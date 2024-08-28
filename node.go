@@ -88,7 +88,7 @@ func createGenesisBlock() Block {
 		Message:   "Genesis Block",
 		Timestamp: time.Now().String(),
 		Height:    0,
-		DiffNum:   25, // 初始难度值
+		DiffNum:   26, // 初始难度值
 		RandomNum: 0,
 		Confirmed: true,
 	}

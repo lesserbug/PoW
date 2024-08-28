@@ -40,7 +40,7 @@ func main() {
 	// 	}
 	// }
 
-	ip2 := "13.239.112.188:"
+	ip2 := "54.79.212.120:"
 
 	powInstances2 := []*PoW{
 		NewPoW(1, ip2+"8001", dc),
@@ -55,7 +55,7 @@ func main() {
 		NewPoW(10, ip2+"8010", dc),
 	}
 
-	ip3 := "54.206.34.42:"
+	ip3 := "3.107.25.157:"
 
         powInstances3 := []*PoW{
                 NewPoW(11, ip3+"8001", dc),
@@ -70,7 +70,7 @@ func main() {
                 NewPoW(20, ip3+"8010", dc),
         }
 
-	ip4 := "54.206.71.200:"
+	ip4 := "54.206.229.3:"
 
         powInstances4 := []*PoW{
                 NewPoW(21, ip4+"8001", dc),
@@ -136,7 +136,7 @@ func (pow *PoW) adjustParticipation() {
 		switch {
 		case elapsed < 400*time.Second:
 			// 40-70% 的概率活跃
-			active = rand.Float32() < (0.40 + rand.Float32()*0.20)
+			active = rand.Float32() < (0.40 + rand.Float32()*0.30)
 
 		case elapsed < 800*time.Second: // 约 125 行
 			// 基于时间块的剧烈波动
@@ -151,7 +151,7 @@ func (pow *PoW) adjustParticipation() {
 			}
 
 		case elapsed < 1100*time.Second:
-			active = rand.Float32() < (0.6 + rand.Float32()*0.2)
+			active = rand.Float32() < (0.6 + rand.Float32()*0.3)
 
 		default:
 			// 10-30% 的概率活跃
